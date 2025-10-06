@@ -17,7 +17,7 @@ class GoalType(TextChoices):
 class BaseGoalType(ABC):
     name:str = "base"
     description:str = "Base Goal type"
-    progressType: ProgressType = ProgressType.BOOLEAN
+    progress_type: ProgressType = ProgressType.BOOLEAN
 
     @classmethod
     @abstractmethod
@@ -47,7 +47,7 @@ class BaseGoalType(ABC):
 class StudyDaily(BaseGoalType):
     name = "study_daily"
     description = "Study every day for the period"
-    progressType = ProgressType.BOOLEAN # Whether studied for that day or not
+    progress_type = ProgressType.BOOLEAN # Whether studied for that day or not
 
     @classmethod
     def calculate_progress(cls, goal):
@@ -79,7 +79,7 @@ class StudyDaily(BaseGoalType):
 class StudyHours(BaseGoalType):
     name = "study_hours"
     description = "Study for x hours for the period"
-    progressType = ProgressType.NUMERIC # How many hours studied(can be float)
+    progress_type = ProgressType.NUMERIC # How many hours studied(can be float)
 
     @classmethod
     def calculate_progress(cls, goal):

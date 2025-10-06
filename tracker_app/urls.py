@@ -6,7 +6,8 @@ router = DefaultRouter()
 router.register(r'domains',DomainViewSet)
 router.register(r'tags',TagViewSet)
 router.register(r'goals',GoalViewSet)
+router.register(r'goal-types', GoalTypeViewSet, basename='goal-type')
 
 urlpatterns = [
-    path('api/',include(router.urls)),
+    path('api/', include(router.urls)),
 ]

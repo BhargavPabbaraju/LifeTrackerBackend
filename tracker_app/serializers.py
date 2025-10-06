@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import *
+from .goal_types import ProgressType
 
 class DomainSerializer(serializers.ModelSerializer):
     class Meta:
@@ -18,6 +19,24 @@ class ScheduleSerializer(serializers.ModelSerializer):
             'id','weekday','week_order','day',
             'start_time','duration','recurrence'
         ]
+
+class GoalTypeSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    description = serializers.CharField()
+    progress_type = serializers.CharField()
+    required_goal_data = serializers.DictField()
+    required_progress_data = serializers.DictField()
+    help_text = serializers.CharField()
+
+    def to_representation(self, instance):
+        return {
+            "name": instance.name,
+            "description": instance.description,
+            "progress_type": instance.progress_type.value if isinstance(instance.progress_type, ProgressType) else instance.progress_type,
+            "required_goal_data": instance.required_goal_data(),
+            "required_progress_data": instance.required_progress_data(),
+            "help_text": instance.help_text(),
+        }
 
 class GoalSerializer(serializers.ModelSerializer):
     schedules = ScheduleSerializer(many=True)
