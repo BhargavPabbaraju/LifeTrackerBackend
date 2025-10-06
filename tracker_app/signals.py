@@ -6,10 +6,6 @@
 # def create_trackers_for_goal(sender, instance:Goal, created, **kwargs):
 #     if not created:
 #         return # Only auto create trackers upon creation of the goal
-    
-
 
 
 # def get_start_and_end_days(date)
-
-
