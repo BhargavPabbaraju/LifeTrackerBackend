@@ -91,7 +91,16 @@ class StudyHours(BaseGoalType):
 
     @classmethod
     def required_goal_data(cls):
-        return {"hours": 0.0}
+        return {
+            "hours": {
+                "type": "number",
+                "label": "Target hours",
+                "help": "Total hours to study in the selected period",
+                "min": 0,
+                "step": 0.5,
+                "unit": "hours",
+            }
+        }
 
     @classmethod
     def required_progress_data(cls):
@@ -107,3 +116,31 @@ class StudyHours(BaseGoalType):
 
 
 GOAL_TYPE_CLASSES = {"study_daily": StudyDaily, "study_hours": StudyHours}
+
+# Example of gow required_goal_data can be used
+# @classmethod
+# def required_goal_data(cls):
+#     return {
+#         "hours": {
+#             "type": "number",
+#             "label": "Target hours",
+#             "help": "Total hours to study in the selected period",
+#             "min": 0,
+#             "step": 0.5,
+#             "unit": "hrs",
+#         },
+#         "include_weekends": {
+#             "type": "boolean",
+#             "label": "Include weekends?",
+#             "default": True,
+#         },
+#         "difficulty": {
+#             "type": "select",
+#             "label": "Difficulty level",
+#             "options": [
+#                 {"label": "Easy", "value": "easy"},
+#                 {"label": "Medium", "value": "medium"},
+#                 {"label": "Hard", "value": "hard"},
+#             ],
+#         },
+#     }
