@@ -6,7 +6,7 @@ from django.db import models
 from .goal_types import GOAL_TYPE_CLASSES, GoalType
 
 
-# This can be Food, Chores, Learning, etc
+# This can be subjects, specific food names, etc
 class Domain(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
@@ -14,7 +14,7 @@ class Domain(models.Model):
         return self.name
 
 
-# This can be subjects, specific food names, etc
+# This can be Food, Chores, Learning, etc
 class Tag(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
@@ -63,6 +63,12 @@ class Goal(models.Model):
 
 
 class Tracker(models.Model):
+    class TrackerStatuses(models.TextChoices):
+        PLANNED = "planned", "Planned"
+        DONE = "done", "Done"
+        PARTIAL = "partial", "Partial"
+        SKIPPED = "skipped", "Skipped"
+
     goal = models.ForeignKey(
         to=Goal, blank=True, null=True, on_delete=models.SET_NULL, related_name="trackers"
     )
@@ -79,6 +85,7 @@ class Tracker(models.Model):
     actual_duration = models.DurationField(blank=True, null=True)
 
     progress_data = models.JSONField(blank=True, null=True)
+    status = models.CharField(choices=TrackerStatuses, default=TrackerStatuses.PLANNED)
 
     def clean(self):
         if not self.goal or not self.goal.goal_type_instance:
