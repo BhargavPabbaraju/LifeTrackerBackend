@@ -62,59 +62,6 @@ class Goal(models.Model):
         super().save(args, kwargs)
 
 
-class Tracker(models.Model):
-    class TrackerStatuses(models.TextChoices):
-        PLANNED = "planned", "Planned"
-        DONE = "done", "Done"
-        PARTIAL = "partial", "Partial"
-        SKIPPED = "skipped", "Skipped"
-
-    goal = models.ForeignKey(
-        to=Goal, blank=True, null=True, on_delete=models.SET_NULL, related_name="trackers"
-    )
-    domain = models.ForeignKey(to=Domain, on_delete=models.CASCADE, related_name="trackers")
-    tags = models.ManyToManyField(to=Tag, related_name="trackers", blank=True)
-
-    date = models.DateField()
-    description = models.TextField()  # What exactly must be/was achieved
-
-    planned_start_time = models.TimeField(blank=True, null=True)
-    planned_duration = models.DurationField(blank=True, null=True)
-
-    actual_starttime = models.TimeField(blank=True, null=True)
-    actual_duration = models.DurationField(blank=True, null=True)
-
-    progress_data = models.JSONField(blank=True, null=True)
-    status = models.CharField(choices=TrackerStatuses, default=TrackerStatuses.PLANNED)
-
-    def clean(self):
-        if not self.goal or not self.goal.goal_type_instance:
-            return
-        goal_type_instance = self.goal.goal_type_instance
-        if goal_type_instance:
-            missing_fields = [
-                f
-                for f in goal_type_instance.required_progress_data()
-                if f not in (self.progress_data or {})
-            ]
-            if missing_fields:
-                raise ValidationError(f"Missing required goal data:{missing_fields}")
-
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        super().save(args, kwargs)
-
-    @property
-    def all_tags(self):
-        return set(self.goal.tags.all() if self.goal else {}).union(set(self.tags.all()))
-
-    @property
-    def progress(self):
-        if not self.goal or not self.goal.goal_type_instance:
-            return None
-        return self.goal.goal_type_instance.progress(self.progress_data or {})
-
-
 class Review(models.Model):
     domain = models.ForeignKey(
         to=Domain, on_delete=models.CASCADE, related_name="reviews", blank=True
@@ -180,6 +127,12 @@ class Schedule(models.Model):
     week_order = models.PositiveSmallIntegerField(
         null=True, blank=True, help_text="2 for 2nd Wednesday of the month"
     )
+    month = models.PositiveSmallIntegerField(
+        choices=[(i, str(i)) for i in range(0, 13)],
+        help_text="The month (1-12).",
+        blank=True,
+        null=True,
+    )
 
     start_time = models.TimeField(null=True, blank=True)
     duration = models.DurationField(null=True, blank=True)
@@ -230,3 +183,59 @@ class Schedule(models.Model):
                 )
         else:
             raise ValidationError("Unknown recurrence type")
+
+
+class Tracker(models.Model):
+    class TrackerStatuses(models.TextChoices):
+        PLANNED = "planned", "Planned"
+        DONE = "done", "Done"
+        PARTIAL = "partial", "Partial"
+        SKIPPED = "skipped", "Skipped"
+
+    goal = models.ForeignKey(
+        to=Goal, blank=True, null=True, on_delete=models.SET_NULL, related_name="trackers"
+    )
+    schedule = models.ForeignKey(
+        to=Schedule, blank=True, null=True, on_delete=models.SET_NULL, related_name="trackers"
+    )
+    domain = models.ForeignKey(to=Domain, on_delete=models.CASCADE, related_name="trackers")
+    tags = models.ManyToManyField(to=Tag, related_name="trackers", blank=True)
+
+    date = models.DateField()
+    description = models.TextField()  # What exactly must be/was achieved
+
+    planned_start_time = models.TimeField(blank=True, null=True)
+    planned_duration = models.DurationField(blank=True, null=True)
+
+    actual_starttime = models.TimeField(blank=True, null=True)
+    actual_duration = models.DurationField(blank=True, null=True)
+
+    progress_data = models.JSONField(blank=True, null=True)
+    status = models.CharField(choices=TrackerStatuses, default=TrackerStatuses.PLANNED)
+
+    def clean(self):
+        if not self.goal or not self.goal.goal_type_instance:
+            return
+        goal_type_instance = self.goal.goal_type_instance
+        if goal_type_instance:
+            missing_fields = [
+                f
+                for f in goal_type_instance.required_progress_data()
+                if f not in (self.progress_data or {})
+            ]
+            if missing_fields:
+                raise ValidationError(f"Missing required goal data:{missing_fields}")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(args, kwargs)
+
+    @property
+    def all_tags(self):
+        return set(self.goal.tags.all() if self.goal else {}).union(set(self.tags.all()))
+
+    @property
+    def progress(self):
+        if not self.goal or not self.goal.goal_type_instance:
+            return None
+        return self.goal.goal_type_instance.progress(self.progress_data or {})
