@@ -102,87 +102,13 @@ class Review(models.Model):
 
 
 class Schedule(models.Model):
-    class Recurrence(models.TextChoices):
-        DAILY = "daily", "Daily"
-        ONCE = "once", "Once"
-        WEEKLY = "weekly", "Weekly"
-        BIWEEKLY = "biweekly", "Biweekly"
-        MONTHLY = "monthly", "Monthly"
-
-    class Weekday(models.IntegerChoices):
-        SUN = 0, "Sun"
-        MON = 1, "Mon"
-        TUE = 2, "Tue"
-        WED = 3, "Wed"
-        THU = 4, "Thu"
-        FRI = 5, "Fri"
-        SAT = 6, "Sat"
-
     goal = models.ForeignKey(to=Goal, on_delete=models.CASCADE, related_name="schedules")
-
-    weekday = models.IntegerField(null=True, blank=True, choices=Weekday.choices)
-    day = models.PositiveSmallIntegerField(
-        null=True, blank=True, help_text="15 for 15th of the month"
-    )
-    week_order = models.PositiveSmallIntegerField(
-        null=True, blank=True, help_text="2 for 2nd Wednesday of the month"
-    )
-    month = models.PositiveSmallIntegerField(
-        choices=[(i, str(i)) for i in range(0, 13)],
-        help_text="The month (1-12).",
-        blank=True,
-        null=True,
-    )
-
+    date = models.DateField()
     start_time = models.TimeField(null=True, blank=True)
     duration = models.DurationField(null=True, blank=True)
-    recurrence = models.CharField(max_length=20, choices=Recurrence.choices)
 
     def __str__(self):
-        return f"{self.goal.description} - {self.recurrence}"
-
-    def clean(self):
-        """
-        Custom validation logic that enforces valid combinations
-        for each recurrence type.
-        """
-        # Common checks
-        if self.duration and self.duration < timedelta(minutes=1):
-            raise ValidationError("Duration must be at least one minute.")
-
-        if self.start_time is not None:
-            if not isinstance(self.start_time, time):
-                raise ValidationError("Start time must be a valid time object.")
-
-        if self.recurrence == self.Recurrence.DAILY:
-            if any([self.week_order, self.weekday, self.day]):
-                raise ValidationError(
-                    "Daily recurrence should not specify weekday , day and week_order."
-                )
-
-        elif (
-            self.recurrence == self.Recurrence.WEEKLY or self.recurrence == self.Recurrence.BIWEEKLY
-        ):
-            if self.week_order or self.day:
-                raise ValidationError(
-                    "Weekly and biweekly recurrence should not specify day and week_order."
-                )
-            if not self.weekday:
-                raise ValidationError("Weekly and biweekly recurrence should specify weekday.")
-
-        elif self.recurrence == self.Recurrence.MONTHLY:
-            if not (self.day or (self.week_order and self.weekday)):
-                raise ValidationError(
-                    "Monthly recurrence must specify either a day or (week_order + weekday)."
-                )
-
-        elif self.recurrence == self.Recurrence.ONCE:
-            if not (self.day or self.weekday or (self.week_order and self.weekday)):
-                raise ValidationError(
-                    "Either a day or a weekday or a (week_order + weekday) must be specified."
-                )
-        else:
-            raise ValidationError("Unknown recurrence type")
+        return f"{self.goal.description} - {self.date}"
 
 
 class Tracker(models.Model):
@@ -207,7 +133,7 @@ class Tracker(models.Model):
     planned_start_time = models.TimeField(blank=True, null=True)
     planned_duration = models.DurationField(blank=True, null=True)
 
-    actual_starttime = models.TimeField(blank=True, null=True)
+    actual_start_time = models.TimeField(blank=True, null=True)
     actual_duration = models.DurationField(blank=True, null=True)
 
     progress_data = models.JSONField(blank=True, null=True)
