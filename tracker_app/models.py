@@ -1,4 +1,5 @@
-from datetime import time, timedelta
+from datetime import date, timedelta
+import calendar
 
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -56,6 +57,32 @@ class Goal(models.Model):
             ]
             if missing_fields:
                 raise ValidationError(f"Missing required goal data:{missing_fields}")
+
+    def calculate_period_dates(self):
+        y, m, w, q = self.year, self.month, self.week, self.quarter
+
+        if self.quarter:
+            start_month = (q - 1) * 3 + 1
+            end_month = start_month + 2
+            self.start_date = date(y, start_month, 1)
+            last_day = calendar.monthrange(y, end_month)[1]
+            self.end_date = date(y, end_month, last_day)
+
+        elif self.month and self.week:
+            # Week 1 starts on 1st of the month and 7 day chunks from there
+            first_of_month = date(y, m, 1)
+            start = first_of_month + timedelta(days=(w - 1) * 7)
+            end = min(start + timedelta(days=6), date(y, m, calendar.monthrange(y, m)[1]))
+            self.start_date, self.end_date = start, end
+
+        elif self.month:
+            self.start_date = date(y, m, 1)
+            last_day = calendar.monthrange(y, m)[1]
+            self.end_date = date(y, m, last_day)
+
+        else:
+            self.start_date = date(y, 1, 1)
+            self.end_date = date(y, 12, 31)
 
     def save(self, *args, **kwargs):
         self.full_clean()
