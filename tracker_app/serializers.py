@@ -19,7 +19,7 @@ class TagSerializer(serializers.ModelSerializer):
 class ScheduleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Schedule
-        fields = ["id", "weekday", "week_order", "day", "start_time", "duration", "recurrence"]
+        fields = ["id", "date", "start_time", "duration", "description", "goal_context"]
 
 
 class GoalTypeSerializer(serializers.Serializer):
@@ -27,6 +27,7 @@ class GoalTypeSerializer(serializers.Serializer):
     description = serializers.CharField()
     progress_type = serializers.CharField()
     required_goal_data = serializers.DictField()
+    required_schedule_data = serializers.DictField()
     required_progress_data = serializers.DictField()
     help_text = serializers.CharField()
 
@@ -40,6 +41,7 @@ class GoalTypeSerializer(serializers.Serializer):
                 else instance.progress_type
             ),
             "required_goal_data": instance.required_goal_data(),
+            "required_schedule_data": instance.required_schedule_data(),
             "required_progress_data": instance.required_progress_data(),
             "help_text": instance.help_text(),
         }

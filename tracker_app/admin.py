@@ -34,8 +34,3 @@ class GoalAdmin(admin.ModelAdmin):
 class TrackerAdmin(admin.ModelAdmin):
     list_display = ["id", "domain", "date", "goal"]
     filter_horizontal = ["tags"]
-
-
-@admin.register(Review)
-class ReviewAdmin(admin.ModelAdmin):
-    list_display = ["id", "domain", "year", "month", "week", "quarter"]
